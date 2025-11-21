@@ -200,6 +200,40 @@ def generate(
     if kwargs.get("num_retries") is None:
         kwargs["num_retries"] = DEFAULT_MAX_RETRIES
 
+    # Auto-detect Nebius API and load API key from environment if needed
+    base_url = kwargs.get("base_url")
+    if base_url and "nebius" in base_url.lower():
+        import os
+
+        if "api_key" not in kwargs:
+            nebius_api_key = os.getenv("NEBIUS_API_KEY")
+            if nebius_api_key:
+                kwargs["api_key"] = nebius_api_key
+                logger.debug("Auto-loaded NEBIUS_API_KEY from environment for LiteLLM")
+
+        # LiteLLM strips provider prefix when using custom base_url, but Nebius API needs full model name
+        # Solution: Use OpenAI provider format and pass full model name via extra_body to override
+        if "/" in model and model.startswith("openai/"):
+            # Store the original full model name that Nebius API expects
+            original_model_name = model  # "openai/gpt-oss-120b"
+            # Extract just the model part for LiteLLM's model parameter (LiteLLM will strip prefix anyway)
+            model_part = model.split("/", 1)[1]  # "gpt-oss-120b"
+            # Use openai provider format so LiteLLM uses OpenAI client with correct endpoint
+            model = f"openai/{model_part}"
+            # Pass the full model name via extra_body - this should override the model in request body
+            if "extra_body" not in kwargs:
+                kwargs["extra_body"] = {}
+            kwargs["extra_body"]["model"] = original_model_name
+            logger.debug(
+                f"Using OpenAI provider with model override: {model} -> {original_model_name} (via extra_body)"
+            )
+
+        # Ensure api_base is set explicitly (LiteLLM uses api_base parameter, not base_url)
+        kwargs["api_base"] = base_url
+        # Remove base_url if present to avoid confusion
+        if "base_url" in kwargs:
+            del kwargs["base_url"]
+
     if model.startswith("claude") and not ALLOW_SONNET_THINKING:
         kwargs["thinking"] = {"type": "disabled"}
     litellm_messages = to_litellm_messages(messages)
