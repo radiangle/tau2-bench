@@ -1,3 +1,4 @@
+import os
 import pytest
 
 from tau2.agent.llm_agent import LLMAgent, LLMSoloAgent
@@ -7,19 +8,19 @@ from tau2.data_model.message import AssistantMessage, UserMessage
 @pytest.fixture
 def agent(get_environment) -> LLMAgent:
     return LLMAgent(
-        llm="gpt-4o-mini",
+        llm="nebius/openai/gpt-oss-20b",
         tools=get_environment().get_tools(),
-        domain_policy=get_environment().get_policy(),
+        domain_policy=get_environment().get_policy()
     )
 
 
 @pytest.fixture
 def solo_agent(get_environment, base_task) -> LLMSoloAgent:
     return LLMSoloAgent(
-        llm="gpt-4o-mini",
+        llm="nebius/openai/gpt-oss-20b",
         tools=get_environment().get_tools(),
         domain_policy=get_environment().get_policy(),
-        task=base_task,
+        task=base_task
     )
 
 

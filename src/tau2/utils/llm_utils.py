@@ -95,7 +95,8 @@ def get_response_cost(response: ModelResponse) -> float:
     try:
         cost = completion_cost(completion_response=response)
     except Exception as e:
-        logger.error(e)
+        # silence this dogshit code that doesn't even work
+        # logger.error(e)
         return 0.0
     return cost
 

@@ -25,7 +25,7 @@ def first_agent_message() -> AssistantMessage:
 
 @pytest.fixture
 def user_simulator(user_instructions: str) -> UserSimulator:
-    return UserSimulator(llm="gpt-4o-mini", instructions=user_instructions)
+    return UserSimulator(llm="nebius/openai/gpt-oss-20b", instructions=user_instructions)
 
 
 def test_user_simulator(
